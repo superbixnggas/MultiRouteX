@@ -1,0 +1,189 @@
+# MultiRouteX Subgraph Schema
+# Version: 1.0.0
+# Description: GraphQL schema untuk indexing MultiRouteX smart contract events
+
+type Contract @entity {
+  id: ID!
+  owner: Bytes!
+  storedValue: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  
+  # Relationships
+  valueChanges: [ValueChange!]!
+  ownershipTransfers: [OwnershipTransfer!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type ValueChange @entity {
+  id: ID!
+  contract: Contract!
+  oldValue: BigInt!
+  newValue: BigInt!
+  
+  # Event data
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  gasUsed: BigInt!
+  
+  # Metadata
+  createdAt: DateTime!
+}
+
+type OwnershipTransfer @entity {
+  id: ID!
+  contract: Contract!
+  previousOwner: Bytes!
+  newOwner: Bytes!
+  
+  # Event data
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+  gasUsed: BigInt!
+  
+  # Metadata
+  createdAt: DateTime!
+}
+
+type User @entity {
+  id: ID!
+  address: Bytes!
+  
+  # Statistics
+  totalValueChanges: Int!
+  totalOwnershipTransfers: Int!
+  
+  # Relationships
+  transactions: [Transaction!]!
+  
+  # Metadata
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Transaction @entity {
+  id: ID!
+  hash: Bytes!
+  from: Bytes!
+  to: Bytes!
+  value: BigInt!
+  gasUsed: BigInt!
+  gasPrice: BigInt!
+  
+  # Contract interaction
+  contractAddress: Bytes!
+  
+  # Events
+  valueChanges: [ValueChange!]!
+  ownershipTransfers: [OwnershipTransfer!]!
+  
+  # Metadata
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  createdAt: DateTime!
+}
+
+type BlockStats @entity {
+  id: ID!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  
+  # Counters
+  totalValueChanges: Int!
+  totalOwnershipTransfers: Int!
+  totalTransactions: Int!
+  
+  # Gas statistics
+  totalGasUsed: BigInt!
+  averageGasPrice: BigInt!
+  
+  # Metadata
+  createdAt: DateTime!
+}
+
+# Custom types for advanced queries
+type ValueChangeStats {
+  totalChanges: Int!
+  averageOldValue: BigDecimal!
+  averageNewValue: BigDecimal!
+  maxValue: BigDecimal!
+  minValue: BigDecimal!
+}
+
+type OwnershipTransferStats {
+  totalTransfers: Int!
+  uniqueAddresses: Int!
+  mostActiveOwner: Bytes!
+}
+
+type NetworkStats @entity {
+  id: ID!
+  totalContracts: Int!
+  totalValueChanges: Int!
+  totalOwnershipTransfers: Int!
+  totalTransactions: Int!
+  totalGasUsed: BigInt!
+  
+  # Latest block info
+  latestBlockNumber: BigInt!
+  latestBlockTimestamp: BigInt!
+  
+  # Metadata
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+# Enums for better type safety
+enum TransactionType {
+  VALUE_CHANGE
+  OWNERSHIP_TRANSFER
+  DEPLOYMENT
+}
+
+enum ContractStatus {
+  ACTIVE
+  PAUSED
+  DEPRECATED
+}
+
+# Query types for aggregations
+type DailyStats @entity {
+  id: ID!
+  date: DateTime!
+  totalValueChanges: Int!
+  totalOwnershipTransfers: Int!
+  totalGasUsed: BigInt!
+  
+  # Metadata
+  createdAt: DateTime!
+}
+
+type MonthlyStats @entity {
+  id: ID!
+  month: DateTime!
+  totalValueChanges: Int!
+  totalOwnershipTransfers: Int!
+  totalGasUsed: BigInt!
+  
+  # Metadata
+  createdAt: DateTime!
+}
+
+# Union types for polymorphic queries
+union ContractEvent = ValueChange | OwnershipTransfer
+
+# Interface for common entity fields
+interface EntityWithTimestamp {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+interface EntityWithBlockInfo {
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
